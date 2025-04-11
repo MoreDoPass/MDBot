@@ -3,7 +3,7 @@
 #include "bot/ui/BotTabWidget.hpp"
 #include "log/LogWindow.hpp"
 #include "debug/DebugWindow.hpp"
-#include "LogManager.hpp"
+#include "log/LogManager.hpp"
 #include <QMessageBox>
 #include <QDateTime>
 #include <iostream>
@@ -108,19 +108,9 @@ void MainWindow::showLogWindow()
 
 void MainWindow::showDebugWindow()
 {
-    DWORD selectedProcessId = 0;
-    // Берем ID первого подключенного процесса
-    if (!attachedProcesses.isEmpty()) {
-        selectedProcessId = attachedProcesses.first();
-    }
-
-    if (selectedProcessId == 0) {
-        QMessageBox::warning(this, "Ошибка", "Сначала подключитесь к процессу WoW");
-        return;
-    }
-
+    // Создаем окно отладки, если его еще нет
     if (!m_debugWindow) {
-        m_debugWindow = new DebugWindow(selectedProcessId);
+        m_debugWindow = new DebugWindow(0); // Передаем 0 как признак того, что процесс не выбран
     }
     
     m_debugWindow->show();

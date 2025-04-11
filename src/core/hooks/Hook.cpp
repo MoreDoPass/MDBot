@@ -1,5 +1,5 @@
 #include "Hook.hpp"
-#include "gui/LogManager.hpp"
+#include "gui/log/LogManager.hpp"
 #include <QDebug>
 
 namespace {

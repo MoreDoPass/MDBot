@@ -1,5 +1,5 @@
 #include "RegisterHook.hpp"
-#include "gui/LogManager.hpp"
+#include "gui/log/LogManager.hpp"
 #include "core/memory/MemoryManager.hpp"
 #include <mutex>
 #include <QDebug>

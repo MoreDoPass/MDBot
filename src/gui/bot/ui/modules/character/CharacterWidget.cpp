@@ -1,6 +1,7 @@
 #include "CharacterWidget.hpp"
+#include "gui/bot/core/BotCore.hpp"
+#include "gui/log/LogManager.hpp"
 #include <QVBoxLayout>
-#include "gui/LogManager.hpp"
 
 CharacterWidget::CharacterWidget(QWidget* parent)
     : QWidget(parent)

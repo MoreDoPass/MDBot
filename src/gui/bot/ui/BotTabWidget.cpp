@@ -1,5 +1,6 @@
 #include "BotTabWidget.hpp"
-#include "gui/LogManager.hpp"
+#include "gui/log/LogManager.hpp"
+#include "gui/bot/ui/modules/character/CharacterWidget.hpp"
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QPushButton>

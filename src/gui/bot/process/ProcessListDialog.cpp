@@ -1,9 +1,10 @@
 #include "ProcessListDialog.hpp"
 #include "core/memory/MemoryManager.hpp"
-#include "gui/LogManager.hpp"
-#include <QHeaderView>
+#include "gui/log/LogManager.hpp"
+#include <QVBoxLayout>
 #include <QMessageBox>
-#include <Psapi.h>
+#include <TlHelp32.h>
+#include <psapi.h>
 #pragma comment(lib, "Psapi.lib")
 
 // Адрес смещения имени персонажа от базы run.exe
