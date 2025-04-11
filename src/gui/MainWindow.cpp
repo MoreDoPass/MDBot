@@ -1,14 +1,17 @@
 #include "MainWindow.hpp"
 #include "bot/process/ProcessListDialog.hpp"
-#include "bot/ui/BotTabWidget.hpp"  // Добавляем include
-#include "LogWindow.hpp"
+#include "bot/ui/BotTabWidget.hpp"
+#include "log/LogWindow.hpp"
+#include "debug/DebugWindow.hpp"
 #include "LogManager.hpp"
 #include <QMessageBox>
 #include <QDateTime>
 #include <iostream>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_logWindow(nullptr)
+    : QMainWindow(parent)
+    , m_logWindow(nullptr)
+    , m_debugWindow(nullptr)
 {
     setWindowTitle("MDBot");
     resize(800, 600);
@@ -32,10 +35,10 @@ void MainWindow::setupCentralWidget()
 
 void MainWindow::setupMenus()
 {
-    // Создаем меню "Окно"
+    // Меню "Окно"
     windowMenu = menuBar()->addMenu("Окно");
     
-    // Добавляем действие для работы с процессами
+    // Действие для работы с процессами
     addWindowAction = new QAction("Добавить окно", this);
     connect(addWindowAction, &QAction::triggered, this, &MainWindow::showProcessListDialog);
     windowMenu->addAction(addWindowAction);
@@ -44,6 +47,11 @@ void MainWindow::setupMenus()
     showLogWindowAction = new QAction("Показать логи", this);
     connect(showLogWindowAction, &QAction::triggered, this, &MainWindow::showLogWindow);
     windowMenu->addAction(showLogWindowAction);
+
+    // Добавляем действие для показа окна отладки
+    showDebugWindowAction = new QAction("Показать отладку", this);
+    connect(showDebugWindowAction, &QAction::triggered, this, &MainWindow::showDebugWindow);
+    windowMenu->addAction(showDebugWindowAction);
 }
 
 void MainWindow::showProcessListDialog()
@@ -89,19 +97,35 @@ void MainWindow::onProcessSelected(DWORD processId)
 
 void MainWindow::showLogWindow()
 {
-    std::cout << "Attempting to create/show log window..." << std::endl;
-    
     if (!m_logWindow) {
-        std::cout << "Creating new log window..." << std::endl;
-        m_logWindow = new LogWindow(this); // Создаём как дочернее окно
-        std::cout << "Log window created." << std::endl;
+        m_logWindow = new LogWindow(nullptr); // Создаем независимое окно
     }
     
-    std::cout << "Showing log window..." << std::endl;
     m_logWindow->show();
     m_logWindow->raise();
     m_logWindow->activateWindow();
-    std::cout << "Log window should be visible now." << std::endl;
+}
+
+void MainWindow::showDebugWindow()
+{
+    DWORD selectedProcessId = 0;
+    // Берем ID первого подключенного процесса
+    if (!attachedProcesses.isEmpty()) {
+        selectedProcessId = attachedProcesses.first();
+    }
+
+    if (selectedProcessId == 0) {
+        QMessageBox::warning(this, "Ошибка", "Сначала подключитесь к процессу WoW");
+        return;
+    }
+
+    if (!m_debugWindow) {
+        m_debugWindow = new DebugWindow(selectedProcessId);
+    }
+    
+    m_debugWindow->show();
+    m_debugWindow->raise();
+    m_debugWindow->activateWindow();
 }
 
 void MainWindow::onTabCloseRequested(int index)

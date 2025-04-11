@@ -26,12 +26,6 @@ set(CMAKE_AUTOUIC ON)
 # Find Qt6
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 
-# Enable testing
-enable_testing()
-
-# Find GTest
-find_package(GTest CONFIG REQUIRED)
-
 # Source files
 set(CORE_SOURCES
     src/core/memory/MemoryManager.cpp
@@ -45,10 +39,19 @@ set(CORE_HEADERS
     src/core/hooks/RegisterHook.hpp
 )
 
+set(DEBUG_SOURCES
+    src/debug/DebugCore.cpp
+)
+
+set(DEBUG_HEADERS
+    src/debug/DebugCore.hpp
+)
+
 set(GUI_SOURCES
     src/gui/MainWindow.cpp
-    src/gui/LogWindow.cpp
-    src/gui/LogManager.cpp
+    src/gui/log/LogWindow.cpp
+    src/gui/log/LogManager.cpp
+    src/gui/debug/DebugWindow.cpp
     src/gui/bot/process/ProcessListDialog.cpp
     src/gui/bot/core/BotCore.cpp
     src/gui/bot/ui/BotTabWidget.cpp
@@ -57,8 +60,9 @@ set(GUI_SOURCES
 
 set(GUI_HEADERS
     src/gui/MainWindow.hpp
-    src/gui/LogWindow.hpp
-    src/gui/LogManager.hpp
+    src/gui/log/LogWindow.hpp
+    src/gui/log/LogManager.hpp
+    src/gui/debug/DebugWindow.hpp
     src/gui/bot/process/ProcessListDialog.hpp
     src/gui/bot/core/BotCore.hpp
     src/gui/bot/ui/BotTabWidget.hpp
@@ -69,13 +73,13 @@ set(SOURCES
     src/main.cpp
     ${GUI_SOURCES}
     ${CORE_SOURCES}
+    ${DEBUG_SOURCES}
 )
 
 add_library(mdbot_core
-    src/core/hooks/Hook.cpp
-    src/core/hooks/RegisterHook.cpp
-    src/core/memory/MemoryManager.cpp
-    src/gui/LogManager.cpp
+    ${CORE_SOURCES}
+    ${DEBUG_SOURCES}
+    src/gui/log/LogManager.cpp
 )
 
 target_include_directories(mdbot_core PUBLIC ${CMAKE_SOURCE_DIR}/src)
@@ -85,6 +89,7 @@ add_executable(${PROJECT_NAME}
     ${SOURCES}
     ${GUI_HEADERS}
     ${CORE_HEADERS}
+    ${DEBUG_HEADERS}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
@@ -150,10 +155,4 @@ if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
     )
-endif()
-
-# Optionally build tests
-option(BUILD_TESTING "Build tests" ON)
-if(BUILD_TESTING)
-    add_subdirectory(tests)
 endif()

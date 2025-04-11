@@ -93,12 +93,15 @@
         "*.cpp": "cpp",
         "CMakeLists.txt": "cmake"
     },
-    "cmake.configureOnOpen": true,
+    "cmake.configureOnOpen": false,
     "cmake.configureArgs": [
         "-A",
         "Win32"
     ],
     "cmake.generator": "Visual Studio 17 2022",
+    "cmake.configureSettings": {
+        "CMAKE_GENERATOR_PLATFORM": "Win32"
+    },
     "cmake.buildDirectory": "${workspaceFolder}/build",
     "C_Cpp.default.includePath": [
         "${workspaceFolder}/**",
