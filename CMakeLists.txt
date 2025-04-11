@@ -11,11 +11,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # vcpkg integration
-set(CMAKE_TOOLCHAIN_FILE "C:/Dev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+set(VCPKG_ROOT "C:/Dev/vcpkg" CACHE PATH "Path to vcpkg installation")
+set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 set(VCPKG_TARGET_TRIPLET "x86-windows" CACHE STRING "Vcpkg target triplet")
 
 # Force CMake to find Qt from vcpkg only
-set(CMAKE_PREFIX_PATH "C:/Dev/vcpkg/installed/x86-windows" CACHE PATH "Force vcpkg Qt path")
+set(CMAKE_PREFIX_PATH "${VCPKG_ROOT}/installed/x86-windows" CACHE PATH "Force vcpkg Qt path")
 
 # Qt configuration
 set(CMAKE_AUTOMOC ON)
@@ -24,6 +25,12 @@ set(CMAKE_AUTOUIC ON)
 
 # Find Qt6
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+
+# Enable testing
+enable_testing()
+
+# Find GTest
+find_package(GTest CONFIG REQUIRED)
 
 # Source files
 set(CORE_SOURCES
@@ -64,6 +71,16 @@ set(SOURCES
     ${CORE_SOURCES}
 )
 
+add_library(mdbot_core
+    src/core/hooks/Hook.cpp
+    src/core/hooks/RegisterHook.cpp
+    src/core/memory/MemoryManager.cpp
+    src/gui/LogManager.cpp
+)
+
+target_include_directories(mdbot_core PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(mdbot_core PUBLIC Qt6::Core Qt6::Widgets)
+
 add_executable(${PROJECT_NAME}
     ${SOURCES}
     ${GUI_HEADERS}
@@ -76,8 +93,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    Qt6::Core
-    Qt6::Widgets
+    mdbot_core
 )
 
 if(WIN32)
@@ -134,4 +150,10 @@ if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
     )
+endif()
+
+# Optionally build tests
+option(BUILD_TESTING "Build tests" ON)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
 endif()
