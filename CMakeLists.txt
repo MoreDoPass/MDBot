@@ -2,6 +2,15 @@
 cmake_minimum_required(VERSION 3.16)
 project(MDBot VERSION 1.0.0 LANGUAGES CXX)
 
+# Настройка типа сборки
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+# Добавляем флаги отладки для MSVC
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi /Od /DEBUG")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /DEBUG")
+
 # Force x86 platform if supported by generator
 if(CMAKE_GENERATOR MATCHES "Visual Studio")
     set(CMAKE_GENERATOR_PLATFORM "Win32" CACHE STRING "Visual Studio platform" FORCE)

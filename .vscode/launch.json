@@ -7,8 +7,8 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/MDBot.exe",
             "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/build/Debug",
             "environment": [
                 {
                     "name": "PATH",
@@ -16,10 +16,25 @@
                 }
             ],
             "console": "integratedTerminal",
+            "symbolSearchPath": "${workspaceFolder}/build/Debug",
             "logging": {
-                "moduleLoad": false,
-                "trace": true
+                "moduleLoad": true,
+                "trace": true,
+                "engineLogging": true,
+                "programOutput": true,
+                "exceptions": true
             }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug MDBot lldb",
+            "program": "${workspaceFolder}/build/Debug/MDBot.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/Debug",
+            "internalConsoleOptions": "neverOpen",
+            "console": "integratedTerminal",
+            "stopOnEntry": true
         }
     ]
 }
