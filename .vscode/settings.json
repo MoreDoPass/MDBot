@@ -165,4 +165,5 @@
         "comments": "",
         "textMateRules": []
     },
+    "chat.setupFromDialog": true,
 }
