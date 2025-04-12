@@ -1,35 +1,14 @@
-#include "BotCore.hpp"
-#include "gui/log/LogManager.hpp"
+#include <QThread>
 #include <QDebug>
-#include <format>
+#include "BotCore.hpp"
+#include "core/memory/MemoryManager.hpp"  // Добавляем правильный include
+#include "gui/log/LogManager.hpp"
 
 BotCore::BotCore(DWORD processId, QObject* parent)
     : QObject(parent)
 {
-    m_context.processId = processId;
-    
-    // Проверяем валидность processId
-    if (processId == 0) {
-        throw std::runtime_error("Invalid process ID (0)");
-    }
-    
     try {
-        HANDLE processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
-        if (processHandle == NULL) {
-            DWORD error = GetLastError();
-            throw std::runtime_error(
-                QString("Failed to open process: error code %1. Run as administrator?")
-                    .arg(error)
-                    .toStdString()
-            );
-        }
-        CloseHandle(processHandle); // Мы просто проверяли доступ
-
-        // Создаем и инициализируем глобальный экземпляр MemoryManager
-        auto memManager = std::make_shared<MemoryManager>(processId);
-        MemoryManager::setInstance(memManager);
-        m_memory = memManager;
-        
+        m_memory = std::make_shared<MemoryManager>(processId);
         LogManager::instance().info(
             QString("MemoryManager initialized for process %1").arg(processId), 
             "Core"
@@ -284,6 +263,7 @@ bool BotCore::setupHooks()
         // Создаем хук
         m_registerHook = std::make_unique<RegisterHook>(
             targetFunction,
+            m_memory,  // Передаем shared_ptr на MemoryManager
             Register::EAX,
             [this](const Registers& regs) { onRegistersUpdated(regs); }
         );

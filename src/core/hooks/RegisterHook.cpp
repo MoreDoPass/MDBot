@@ -104,10 +104,11 @@ static __declspec(naked) void HookFunction()
     }
 }
 
-RegisterHook::RegisterHook(void* targetFunction, Register registersToHook, RegisterCallback callback)
+RegisterHook::RegisterHook(void* targetFunction, std::shared_ptr<MemoryManager> memory, Register registersToHook, RegisterCallback callback)
     : m_targetFunction(targetFunction)
     , m_registers(registersToHook)
     , m_callback(std::move(callback))
+    , m_memory(std::move(memory))
 {
     std::unique_lock<std::shared_mutex> lock(s_instanceMutex);
     s_instance = this;
@@ -130,13 +131,13 @@ RegisterHook::~RegisterHook()
 
 bool RegisterHook::install()
 {
-    if (m_installed || !m_targetFunction || !g_hookFunction) {
+    if (m_installed || !m_targetFunction || !g_hookFunction || !m_memory) {
         LogManager::instance().error("Cannot install hook - invalid state", "Hooks");
         return false;
     }
 
     try {
-        HANDLE processHandle = MemoryManager::instance().GetProcessHandle();
+        HANDLE processHandle = m_memory->GetProcessHandle();
         
         LogManager::instance().debug(
             QString("Installing hook at 0x%1")
@@ -168,12 +169,12 @@ bool RegisterHook::install()
 
 bool RegisterHook::uninstall()
 {
-    if (!m_installed || !m_targetFunction) {
+    if (!m_installed || !m_targetFunction || !m_memory) {
         return false;
     }
 
     try {
-        HANDLE processHandle = MemoryManager::instance().GetProcessHandle();
+        HANDLE processHandle = m_memory->GetProcessHandle();
         
         LogManager::instance().debug(
             QString("Uninstalling hook at 0x%1")

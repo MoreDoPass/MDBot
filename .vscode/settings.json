@@ -91,7 +91,9 @@
         "*.h": "cpp",
         "*.hpp": "cpp",
         "*.cpp": "cpp",
-        "CMakeLists.txt": "cmake"
+        "CMakeLists.txt": "cmake",
+        "shared_mutex": "cpp",
+        "qcloseevent": "cpp"
     },
     "cmake.configureOnOpen": false,
     "cmake.configureArgs": [

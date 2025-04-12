@@ -1,13 +1,10 @@
 #include "MemoryManager.hpp"
 #include <system_error>
 #include <TlHelp32.h>
-#include <algorithm> // для std::min
-#include <QDebug> // для qDebug
+#include <algorithm>
+#include <QDebug>
 
-using namespace std; // добавляем using directive
-
-// Инициализация статического члена
-std::shared_ptr<MemoryManager> MemoryManager::s_instance;
+using namespace std;
 
 MemoryManager::MemoryManager(DWORD pid) : processId(pid), baseAddress(0) {
     // Запрашиваем все возможные права доступа к процессу
@@ -47,7 +44,40 @@ MemoryManager::MemoryManager(DWORD pid) : processId(pid), baseAddress(0) {
 MemoryManager::~MemoryManager() {
     if (processHandle) {
         CloseHandle(processHandle);
+        processHandle = nullptr;
     }
+}
+
+// Move конструктор
+MemoryManager::MemoryManager(MemoryManager&& other) noexcept
+    : processHandle(other.processHandle)
+    , processId(other.processId)
+    , baseAddress(other.baseAddress) {
+    // Обнуляем handle в другом объекте
+    other.processHandle = nullptr;
+    other.processId = 0;
+    other.baseAddress = 0;
+}
+
+// Move оператор присваивания
+MemoryManager& MemoryManager::operator=(MemoryManager&& other) noexcept {
+    if (this != &other) {
+        // Закрываем текущий handle если есть
+        if (processHandle) {
+            CloseHandle(processHandle);
+        }
+        
+        // Перемещаем данные
+        processHandle = other.processHandle;
+        processId = other.processId;
+        baseAddress = other.baseAddress;
+        
+        // Обнуляем в другом объекте
+        other.processHandle = nullptr;
+        other.processId = 0;
+        other.baseAddress = 0;
+    }
+    return *this;
 }
 
 void MemoryManager::UpdateBaseAddress() {
@@ -192,4 +222,45 @@ bool MemoryManager::EnsureMemoryAccess(uintptr_t address, size_t size, DWORD req
 
 void MemoryManager::ThrowLastError(const char* message) const {
     throw std::system_error(GetLastError(), std::system_category(), message);
+}
+
+void* MemoryManager::AllocateMemory(void* address, size_t size, DWORD protection) {
+    qDebug() << "Attempting to allocate" << size << "bytes at address" 
+             << QString::number(reinterpret_cast<quintptr>(address), 16)
+             << "with protection" << QString::number(protection, 16);
+             
+    void* allocatedAddress = VirtualAllocEx(
+        processHandle,
+        address,
+        size,
+        MEM_COMMIT | MEM_RESERVE,
+        protection
+    );
+    
+    if (!allocatedAddress) {
+        DWORD error = GetLastError();
+        qDebug() << "VirtualAllocEx failed with error:" << error;
+        return nullptr;
+    }
+    
+    qDebug() << "Successfully allocated memory at" 
+             << QString::number(reinterpret_cast<quintptr>(allocatedAddress), 16);
+             
+    return allocatedAddress;
+}
+
+bool MemoryManager::FreeMemory(void* address) {
+    qDebug() << "Attempting to free memory at address"
+             << QString::number(reinterpret_cast<quintptr>(address), 16);
+             
+    if (!VirtualFreeEx(processHandle, address, 0, MEM_RELEASE)) {
+        DWORD error = GetLastError();
+        qDebug() << "VirtualFreeEx failed with error:" << error;
+        return false;
+    }
+    
+    qDebug() << "Successfully freed memory at"
+             << QString::number(reinterpret_cast<quintptr>(address), 16);
+             
+    return true;
 }

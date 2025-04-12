@@ -15,30 +15,12 @@
 /**
  * @class MemoryManager
  * @brief Класс для управления памятью процесса WoW
- * @details Обеспечивает безопасный доступ к памяти процесса WoW, включая чтение и запись
- * различных типов данных, работу со строками и массивами, а также поиск паттернов в памяти
+ * @details Обеспечивает безопасный доступ к памятью процесса WoW, включая чтение и запись
+ * различных типов данных, работу со строками и массивами, а также поиск паттернов в памяти.
+ * Каждый экземпляр класса работает с отдельным процессом WoW.
  */
 class MemoryManager {
 public:
-    /**
-     * @brief Получить глобальный экземпляр MemoryManager
-     * @return Ссылка на глобальный экземпляр
-     */
-    static MemoryManager& instance() {
-        if (!s_instance) {
-            throw std::runtime_error("MemoryManager not initialized");
-        }
-        return *s_instance;
-    }
-
-    /**
-     * @brief Установить глобальный экземпляр
-     * @param manager Указатель на экземпляр MemoryManager
-     */
-    static void setInstance(std::shared_ptr<MemoryManager> manager) {
-        s_instance = std::move(manager);
-    }
-
     /**
      * @brief Конструктор менеджера памяти
      * @param processId ID процесса WoW
@@ -52,11 +34,25 @@ public:
      */
     ~MemoryManager();
 
+    // Запрещаем копирование и присваивание
+    MemoryManager(const MemoryManager&) = delete;
+    MemoryManager& operator=(const MemoryManager&) = delete;
+    
+    // Разрешаем перемещение
+    MemoryManager(MemoryManager&&) noexcept;
+    MemoryManager& operator=(MemoryManager&&) noexcept;
+
     /**
      * @brief Получает handle процесса
      * @return Handle процесса WoW
      */
     HANDLE GetProcessHandle() const { return processHandle; }
+
+    /**
+     * @brief Получает ID процесса
+     * @return ID процесса WoW
+     */
+    DWORD GetProcessId() const { return processId; }
 
     /**
      * @brief Получает базовый адрес модуля
@@ -217,9 +213,23 @@ public:
         return true;
     }
 
-private:
-    static std::shared_ptr<MemoryManager> s_instance;  ///< Глобальный экземпляр
+    /**
+     * @brief Выделяет память в процессе
+     * @param address Предпочтительный адрес для выделения (может быть nullptr)
+     * @param size Размер выделяемой памяти в байтах
+     * @param protection Права доступа для выделенной памяти (по умолчанию PAGE_EXECUTE_READWRITE)
+     * @return Указатель на выделенную память или nullptr в случае ошибки
+     */
+    void* AllocateMemory(void* address = nullptr, size_t size = 0x1000, DWORD protection = PAGE_EXECUTE_READWRITE);
 
+    /**
+     * @brief Освобождает ранее выделенную память
+     * @param address Адрес для освобождения
+     * @return true если память успешно освобождена
+     */
+    bool FreeMemory(void* address);
+
+private:
     HANDLE processHandle;       ///< Handle процесса WoW
     DWORD processId;           ///< ID процесса WoW
     uintptr_t baseAddress;     ///< Базовый адрес run.exe

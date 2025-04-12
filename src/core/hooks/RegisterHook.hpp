@@ -12,6 +12,8 @@
 #include <functional>
 #include <mutex>
 #include <shared_mutex>
+#include <memory>
+#include "core/memory/MemoryManager.hpp"
 
 /**
  * @enum Register
@@ -88,10 +90,14 @@ public:
     /**
      * @brief Конструктор класса RegisterHook
      * @param targetFunction Указатель на целевую функцию для перехвата
+     * @param memory Указатель на менеджер памяти
      * @param registersToHook Флаги регистров, которые нужно отслеживать
      * @param callback Функция обратного вызова для обработки регистров
      */
-    RegisterHook(void* targetFunction, Register registersToHook, RegisterCallback callback);
+    RegisterHook(void* targetFunction, 
+                std::shared_ptr<MemoryManager> memory,
+                Register registersToHook, 
+                RegisterCallback callback);
     
     /**
      * @brief Деструктор класса RegisterHook
@@ -125,6 +131,14 @@ public:
         return s_instance;
     }
 
+    /**
+     * @brief Получает указатель на менеджер памяти
+     * @return std::shared_ptr на менеджер памяти
+     */
+    std::shared_ptr<MemoryManager> getMemoryManager() const {
+        return m_memory;
+    }
+
 protected:
     static RegisterHook* s_instance;
     static std::shared_mutex s_instanceMutex;
@@ -133,5 +147,6 @@ private:
     void* m_targetFunction{nullptr};  ///< Указатель на целевую функцию
     Register m_registers;             ///< Флаги отслеживаемых регистров
     RegisterCallback m_callback;      ///< Функция обратного вызова
-    bool m_installed{false};          ///< Флаг установки хука
+    bool m_installed{false};         ///< Флаг установки хука
+    std::shared_ptr<MemoryManager> m_memory; ///< Менеджер памяти
 };
