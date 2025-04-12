@@ -97,22 +97,16 @@
     },
     "cmake.configureOnOpen": false,
     "cmake.configureArgs": [
-        "-A",
-        "Win32"
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
     ],
     "cmake.generator": "Visual Studio 17 2022",
     "cmake.configureSettings": {
         "CMAKE_GENERATOR_PLATFORM": "Win32"
     },
     "cmake.buildDirectory": "${workspaceFolder}/build",
+    // Исправляем пути include
     "C_Cpp.default.includePath": [
-        "${workspaceFolder}/**",
-        "${workspaceFolder}/src",
-        "C:/Dev/vcpkg/installed/x86-windows/include",
-        "C:/Dev/vcpkg/installed/x86-windows/include/Qt6",
-        "C:/Dev/vcpkg/installed/x86-windows/include/Qt6/QtCore",
-        "C:/Dev/vcpkg/installed/x86-windows/include/Qt6/QtWidgets",
-        "C:/Dev/vcpkg/installed/x86-windows/include/Qt6/QtGui"
+        "${workspaceFolder}/src/**"
     ],
     "C_Cpp.default.defines": [
         "_DEBUG",
@@ -134,7 +128,9 @@
     "editor.foldingImportsByDefault": true,
     "[cpp]": {
         "editor.foldingStartMarker": "^\\s*/\\*\\*(?!/)\\s*$",
-        "editor.foldingStopMarker": "^\\s*\\*/$"
+        "editor.foldingStopMarker": "^\\s*\\*/$",
+        "editor.defaultFormatter": "xaver.clang-format",
+        "editor.formatOnSave": true
     },
     "editor.foldingHighlight": true,
     "editor.showFoldingControls": "always",
@@ -155,12 +151,8 @@
     "github.copilot.chat.codeGeneration.useInstructionFiles": true,
     "github.copilot.chat.localeOverride": "ru",
     "github.copilot.chat.codesearch.enabled": true,
-    "github.copilot.chat.reviewSelection.instructions": [
-
-    ],
-    "github.copilot.chat.commitMessageGeneration.instructions": [
-
-    ],
+    "github.copilot.chat.reviewSelection.instructions": [],
+    "github.copilot.chat.commitMessageGeneration.instructions": [],
     "chat.agent.maxRequests": 15,
     "githubPullRequests.experimental.chat": false,
     "editor.tokenColorCustomizations": {
@@ -168,4 +160,92 @@
         "textMateRules": []
     },
     "chat.setupFromDialog": true,
+    "c-cpp-flylint.cppcheck.enable": true,
+    "c-cpp-flylint.cppcheck.platform": "win32A",
+    "c-cpp-flylint.cppcheck.standard": [
+        "c++20"
+    ],
+    "c-cpp-flylint.cppcheck.suppressions": [
+        "missingInclude"
+    ],
+    "c-cpp-flylint.cppcheck.severityLevels": {
+        "error": "Error",
+        "warning": "Warning",
+        "style": "Information",
+        "performance": "Information",
+        "portability": "Information",
+        "information": "Information"
+    },
+    "editor.formatOnSave": true,
+    "C_Cpp.formatting": "clangFormat",
+    "C_Cpp.clang_format_path": "clang-format",
+    "C_Cpp.clang_format_style": "file",
+    // Настройки C/C++ Advanced Lint
+    "c-cpp-flylint.clang.enable": false, // Отключаем clang пока
+    "c-cpp-flylint.flexelint.enable": false,
+    "c-cpp-flylint.lizard.enable": false,
+    "c-cpp-flylint.flawfinder.enable": false,
+    // Настройки CppCheck в рамках C/C++ Advanced Lint
+    "c-cpp-flylint.cppcheck.enable": true,
+    "c-cpp-flylint.cppcheck.platform": "win32A",
+    "c-cpp-flylint.cppcheck.standard": [
+        "c++20"
+    ],
+    "c-cpp-flylint.cppcheck.severityLevels": {
+        "error": "Error",
+        "warning": "Warning",
+        "style": "Hint", // Понижаем уровень style до Hint
+        "performance": "Hint", // Понижаем уровень performance до Hint
+        "portability": "Hint", // Понижаем уровень portability до Hint
+        "information": "Hint" // Понижаем уровень information до Hint
+    ],
+    "c-cpp-flylint.cppcheck.suppressions": [
+        "missingInclude", // Игнорируем ошибки отсутствующих системных включений
+        "unusedFunction", // Игнорируем предупреждения о неиспользуемых функциях
+        "noExplicitConstructor", // Игнорируем предупреждения о неявных конструкторах
+        "unmatchedSuppression" // Игнорируем предупреждения о неиспользованных подавлениях
+    ],
+    "c-cpp-flylint.cppcheck.verbose": false, // Уменьшаем количество выводимой информации
+    "c-cpp-flylint.cppcheck.addons": [],
+    // Исправляем пути include
+    "c-cpp-flylint.cppcheck.includePaths": [
+        "${workspaceFolder}/src"
+    ],
+    // Общие настройки C/C++ Advanced Lint
+    "c-cpp-flylint.run": "onType", // Проверка при вводе кода
+    "c-cpp-flylint.debug": false, // Отключаем отладочные сообщения
+    "c-cpp-flylint.excludeFromWorkspacePaths": [
+        "build/**" // Исключаем папку build из проверки
+    ],
+    // Clang-Tidy
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+    "C_Cpp.codeAnalysis.runAutomatically": false, // Переключаем на ручной режим
+    "C_Cpp.codeAnalysis.exclude": [
+        "${workspaceFolder}/build/**"
+    ],
+    // Отключаем clang в C/C++ Advanced Lint, так как будем использовать встроенную поддержку clang-tidy
+    "c-cpp-flylint.clang.enable": false,
+    // Настройки clang-tidy в C/C++ расширении
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+    "C_Cpp.codeAnalysis.clangTidy.path": "clang-tidy",
+    "C_Cpp.codeAnalysis.runAutomatically": false, // Переключаем на ручной режим
+    "C_Cpp.codeAnalysis.exclude": [
+        "${workspaceFolder}/build/**"
+    ],
+    "C_Cpp.codeAnalysis.clangTidy.checks.enabled": [
+        "bugprone-*",
+        "cert-*",
+        "clang-analyzer-*",
+        "cppcoreguidelines-*",
+        "modernize-*",
+        "performance-*",
+        "readability-*",
+        "-modernize-use-trailing-return-type"
+    ],
+    // Убеждаемся что IntelliSense работает правильно
+    "C_Cpp.intelliSense.cachePath": "${workspaceFolder}/build",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+    // Дополнительные настройки C++
+    "C_Cpp.errorSquiggles": "enabled",
+    "C_Cpp.intelliSenseEngine": "default"
 }
