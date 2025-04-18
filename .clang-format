@@ -1,67 +1,92 @@
 ---
-# Базовый стиль
-BasedOnStyle: Microsoft
-Language: Cpp
-
+# Базовый стиль форматирования
+BasedOnStyle: Microsoft    # Базовый стиль (LLVM, Google, Chromium, Mozilla, WebKit, Microsoft)
+Language: Cpp             # Язык (C, Cpp, JavaScript, Proto)
+Standard: c++20  # Или Latest
 # Отступы и пробелы
-IndentWidth: 4
-TabWidth: 4
-UseTab: Never
-ColumnLimit: 120
-MaxEmptyLinesToKeep: 2
+IndentWidth: 4            # Ширина отступа
+TabWidth: 4               # Ширина табуляции
+UseTab: Never             # Использование табуляции (Never, ForIndentation, ForContinuationAndIndentation, Always)
+ColumnLimit: 120          # Максимальная длина строки
+MaxEmptyLinesToKeep: 2    # Максимальное количество пустых строк подряд
 
 # Скобки и отступы
-BreakBeforeBraces: Allman
-IndentCaseLabels: true
-NamespaceIndentation: All
+BreakBeforeBraces: Allman    # Стиль расстановки скобок (Allman, Attach, Mozilla, Stroustrup)
+IndentCaseLabels: true       # Отступ для меток case в switch
+NamespaceIndentation: All    # Отступы в пространствах имен (None, Inner, All)
 
 # Выравнивание
-AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: true
-AlignConsecutiveDeclarations: true
-AlignEscapedNewlines: Left
-AlignOperands: true
-AlignTrailingComments: true
+AlignAfterOpenBracket: Align          # Выравнивание после открывающей скобки
+AlignConsecutiveAssignments: true     # Выравнивание последовательных присваиваний
+AlignConsecutiveDeclarations: true    # Выравнивание последовательных объявлений
+AlignEscapedNewlines: Left           # Выравнивание перенесенных строк
+AlignOperands: true                  # Выравнивание операндов
+AlignTrailingComments: true          # Выравнивание комментариев
 
 # Пробелы
-SpaceAfterCStyleCast: false
-SpaceAfterTemplateKeyword: true
-SpaceBeforeAssignmentOperators: true
-SpaceBeforeParens: ControlStatements
-SpaceInEmptyParentheses: false
-SpacesBeforeTrailingComments: 1
-SpacesInAngles: false
-SpacesInContainerLiterals: true
-SpacesInCStyleCastParentheses: false
-SpacesInParentheses: false
-SpacesInSquareBrackets: false
+SpaceAfterCStyleCast: false           # Пробел после C-style приведения типов
+SpaceAfterTemplateKeyword: true       # Пробел после ключевого слова template
+SpaceBeforeAssignmentOperators: true  # Пробел перед оператором присваивания
+SpaceBeforeParens: ControlStatements  # Пробел перед скобками
+SpaceInEmptyParentheses: false        # Пробел в пустых скобках
+SpacesBeforeTrailingComments: 1       # Пробелы перед комментариями в конце строки
+SpacesInAngles: false                 # Пробелы в угловых скобках
+SpacesInContainerLiterals: true       # Пробелы в литералах контейнеров
+SpacesInCStyleCastParentheses: false  # Пробелы в скобках при C-style приведении типов
+SpacesInParentheses: false            # Пробелы в круглых скобках
+SpacesInSquareBrackets: false         # Пробелы в квадратных скобках
 
 # Переносы строк
-AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: Empty
-AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
-AlwaysBreakAfterReturnType: None
-AlwaysBreakBeforeMultilineStrings: false
-AlwaysBreakTemplateDeclarations: Yes
-BinPackArguments: false
-BinPackParameters: false
-BreakBeforeBinaryOperators: NonAssignment
-BreakBeforeTernaryOperators: true
-BreakConstructorInitializers: BeforeColon
-BreakInheritanceList: BeforeColon
-ConstructorInitializerAllOnOneLineOrOnePerLine: true
+AllowAllParametersOfDeclarationOnNextLine: true     # Разрешить перенос параметров на следующую строку
+AllowShortBlocksOnASingleLine: Empty                # Короткие блоки на одной строке
+AllowShortCaseLabelsOnASingleLine: false           # Короткие метки case на одной строке
+AllowShortFunctionsOnASingleLine: Inline           # Короткие функции на одной строке
+AllowShortIfStatementsOnASingleLine: Never         # Короткие if на одной строке
+AllowShortLoopsOnASingleLine: false                # Короткие циклы на одной строке
+AlwaysBreakAfterReturnType: None                   # Перенос после типа возврата
+AlwaysBreakBeforeMultilineStrings: false          # Перенос перед многострочными строками
+AlwaysBreakTemplateDeclarations: Yes              # Перенос объявлений шаблонов
+BinPackArguments: false                           # Упаковка аргументов
+BinPackParameters: false                          # Упаковка параметров
+BreakBeforeBinaryOperators: NonAssignment        # Перенос перед бинарными операторами
+BreakBeforeTernaryOperators: true                # Перенос перед тернарными операторами
+BreakConstructorInitializers: BeforeColon        # Перенос инициализаторов конструктора
+BreakInheritanceList: BeforeColon               # Перенос списка наследования
+ConstructorInitializerAllOnOneLineOrOnePerLine: true  # Инициализаторы конструктора
 
-# Включения и пространства имен
-IncludeBlocks: Preserve
-SortIncludes: true
-FixNamespaceComments: true
+# Настройки включений
+IncludeBlocks: Regroup     # Группировка включений (Preserve, Merge, Regroup)
+IncludeCategories:         # Категории включений и их приоритеты
+  # Windows API (Priority: 1)
+  - Regex: '^<windows.h>$'
+    Priority: 1
+    SortPriority: 1
+  - Regex: '^<(WinSock2|WinInet|TlHelp32).h>$'
+    Priority: 1
+    SortPriority: 2
+    
+  # C system headers (Priority: 2)
+  - Regex: '^<sys/.*'
+    Priority: 2
+    
+  # C++ STL (Priority: 3)
+  - Regex: '^<(string|vector|map|list|queue|stack|memory|algorithm)>$'
+    Priority: 3
+    
+  # Qt headers (Priority: 4)
+  - Regex: '^<Q.*'
+    Priority: 4
+    
+  # Project headers (Priority: 5)
+  - Regex: '^".*'
+    Priority: 5
+
+SortIncludes: CaseInsensitive  # Сортировка включений без учета регистра
+FixNamespaceComments: true    # Исправление комментариев пространств имен
 
 # Указатели и ссылки
-DerivePointerAlignment: false
-PointerAlignment: Left
+DerivePointerAlignment: false  # Выравнивание указателей
+PointerAlignment: Left        # Положение * и & (Left, Right, Middle)
 
 # Qt специфичные настройки
-SortUsingDeclarations: true
+SortUsingDeclarations: true   # Сортировка using-объявлений

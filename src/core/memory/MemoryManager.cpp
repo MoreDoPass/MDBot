@@ -1,12 +1,18 @@
 #include "MemoryManager.hpp"
-#include <QDebug>
+
 #include <TlHelp32.h>
+
 #include <algorithm>
+
+#include <QDebug>
+
 #include <system_error>
 
 
 using namespace std;
 
+
+#pragma region Initialization & Lifecycle
 MemoryManager::MemoryManager(DWORD pid) : processId(pid), baseAddress(0)
 {
     // Запрашиваем все возможные права доступа к процессу
@@ -79,7 +85,9 @@ MemoryManager& MemoryManager::operator=(MemoryManager&& other) noexcept
     }
     return *this;
 }
+#pragma endregion Initialization& Lifecycle
 
+#pragma region Module Operations
 void MemoryManager::UpdateBaseAddress()
 {
     baseAddress = GetModuleBaseAddress();
@@ -134,7 +142,9 @@ uintptr_t MemoryManager::ResolveAddress(uintptr_t relativeAddress)
     }
     return baseAddress + relativeAddress;
 }
+#pragma endregion Module Operations
 
+#pragma region Error Handling & Validation
 bool MemoryManager::IsValidAddress(uintptr_t address) const
 {
     MEMORY_BASIC_INFORMATION mbi;
@@ -145,51 +155,50 @@ void MemoryManager::ThrowLastError(const char* message) const
 {
     throw std::system_error(GetLastError(), std::system_category(), message);
 }
-// clang-format off
+#pragma endregion Error Handling& Validation
+
 #pragma region Read/Write Operations
-    #pragma region Read Operations
-    std::string MemoryManager::ReadString(uintptr_t address, size_t maxLength)
-    {
-        std::vector<char> buffer(maxLength + 1); // +1 для нуль-терминатора
-        SIZE_T            bytesRead;
+#pragma region Read Operations
+std::string MemoryManager::ReadString(uintptr_t address, size_t maxLength, bool isRelative)
+{
+    uintptr_t         finalAddress = isRelative ? ResolveAddress(address) : address;
+    std::vector<char> buffer(maxLength + 1); // +1 для нуль-терминатора
+    SIZE_T            bytesRead;
 
-        if (!ReadProcessMemory(processHandle, (LPCVOID)address, buffer.data(), maxLength, &bytesRead))
-        {
-            ThrowLastError("Failed to read string");
-        }
+    if (!ReadProcessMemory(processHandle, (LPCVOID)finalAddress, buffer.data(), maxLength, &bytesRead))
+    {
+        ThrowLastError("Failed to read string");
+    }
 
-        // Находим нуль-терминатор
-        buffer[maxLength] = '\0'; // Гарантируем нуль-терминацию
-        size_t length     = 0;
-        while (length < bytesRead && buffer[length] != '\0')
-        {
-            length++;
-        }
+    // Находим нуль-терминатор
+    buffer[maxLength] = '\0'; // Гарантируем нуль-терминацию
+    size_t length     = 0;
+    while (length < bytesRead && buffer[length] != '\0')
+    {
+        length++;
+    }
 
-        return std::string(buffer.data(), length);
-    }
-    std::string MemoryManager::ReadStringRelative(uintptr_t relativeAddress, size_t maxLength)
-    {
-        return ReadString(ResolveAddress(relativeAddress), maxLength);
-    }
-    #pragma endregion Read Operations
-    #pragma region Write Operations
-    bool MemoryManager::WriteString(uintptr_t address, const string& str)
-    {
-        SIZE_T bytesWritten;
-        // Ограничиваем длину строки 12 символами (максимум в WoW)
-        size_t writeLength = min(str.length(), size_t(12));
-        return WriteProcessMemory(
-                processHandle, (LPVOID)address, str.c_str(), writeLength + 1, &bytesWritten) // +1 для нуль-терминатора
-            && bytesWritten == writeLength + 1;
-    }
-    bool MemoryManager::WriteStringRelative(uintptr_t relativeAddress, const std::string& str)
-    {
-        return WriteString(ResolveAddress(relativeAddress), str);
-    }
-    #pragma endregion Write Operations
+    return std::string(buffer.data(), length);
+}
+#pragma endregion Read Operations
+
+#pragma region Write Operations
+bool MemoryManager::WriteString(uintptr_t address, const string& str, bool isRelative)
+{
+    uintptr_t finalAddress = isRelative ? ResolveAddress(address) : address;
+    SIZE_T    bytesWritten;
+    // Ограничиваем длину строки 12 символами (максимум в WoW)
+    size_t writeLength = min(str.length(), size_t(12));
+    return WriteProcessMemory(processHandle,
+                              (LPVOID)finalAddress,
+                              str.c_str(),
+                              writeLength + 1,
+                              &bytesWritten) // +1 для нуль-терминатора
+           && bytesWritten == writeLength + 1;
+}
+#pragma endregion Write Operations
 #pragma endregion Read / Write Operations
-// clang-format on
+
 #pragma region Memory Operations
 void* MemoryManager::AllocateMemory(void* address, size_t size, DWORD protection)
 {

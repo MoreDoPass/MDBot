@@ -1,17 +1,15 @@
 ---
-Checks: '*,
-        -fuchsia-*,
-        -google-*,
-        -zircon-*,
-        -abseil-*,
-        -modernize-use-trailing-return-type,
-        -llvm-*,
-        -llvmlibc-*'
-WarningsAsErrors: ''
-HeaderFilterRegex: ''
-FormatStyle: file
+# Включаем все проверки по умолчанию
+Checks: '*'
 
+# Настройки для конкретных проверок
 CheckOptions:
+  # Разрешаем Windows API определения приходить через MemoryManager.hpp
+  - key: misc-include-cleaner.IgnoreHeaders
+    value: 'MemoryManager.hpp'
+  # Указываем какие определения разрешены через этот заголовок
+  - key: misc-include-cleaner.IgnoreSymbols
+    value: 'DWORD;HANDLE;OpenProcess;PROCESS_ALL_ACCESS;FALSE;Module32FirstW;Module32NextW;CreateToolhelp32Snapshot'
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
   - key: readability-identifier-naming.ClassMethodCase
@@ -38,3 +36,6 @@ CheckOptions:
     value: camelBack
   - key: readability-identifier-length.MinLength
     value: 2
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+FormatStyle: file
