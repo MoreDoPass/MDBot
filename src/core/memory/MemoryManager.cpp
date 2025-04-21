@@ -15,31 +15,27 @@ using namespace std;
 #pragma region Initialization & Lifecycle
 MemoryManager::MemoryManager(DWORD pid) : processId(pid), baseAddress(0)
 {
-    // Запрашиваем все возможные права доступа к процессу
-    processHandle = OpenProcess(PROCESS_ALL_ACCESS, // Запрашиваем полный доступ
+    // Запрашиваем все необходимые права для работы с процессом
+    processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | // Для получения информации о процессе
+                                    PROCESS_VM_READ |       // Для чтения памяти
+                                    PROCESS_VM_WRITE |      // Для записи в память
+                                    PROCESS_VM_OPERATION |  // Для VirtualAllocEx/VirtualFreeEx
+                                    PROCESS_CREATE_THREAD | // Для CreateRemoteThread
+                                    PROCESS_SUSPEND_RESUME, // Для управления потоками
                                 FALSE,
-                                processId);
+                                pid);
 
     if (!processHandle)
     {
         DWORD error = GetLastError();
-        qDebug() << "Failed to open process with error:" << error << "Process ID:" << processId;
-
-        if (error == ERROR_ACCESS_DENIED)
-        {
-            throw std::runtime_error("Access denied when opening process. "
-                                     "The application must be run as administrator to modify memory.");
-        }
-        else if (error == ERROR_INVALID_PARAMETER)
-        {
-            throw std::runtime_error("Invalid process ID specified.");
-        }
-
-        throw std::system_error(error, std::system_category(), "Failed to open process");
+        qDebug() << "Failed to open process" << pid << "with error:" << error;
+        ThrowLastError("Failed to open process with required access rights");
     }
 
-    qDebug() << "Successfully opened process" << processId << "with handle:" << processHandle;
+    qDebug() << "Successfully opened process" << pid
+             << "with handle:" << QString::number(reinterpret_cast<quintptr>(processHandle), 16);
 
+    // Получаем базовый адрес при создании
     UpdateBaseAddress();
 }
 
@@ -159,13 +155,24 @@ void MemoryManager::ThrowLastError(const char* message) const
 
 #pragma region Read/Write Operations
 #pragma region Read Operations
+bool MemoryManager::ReadMemory(uintptr_t address, void* buffer, size_t size)
+{
+    SIZE_T bytesRead;
+    if (!ReadProcessMemory(processHandle, (LPCVOID)address, buffer, size, &bytesRead))
+    {
+        qDebug() << "Failed to read memory at" << QString::number(address, 16) << "of size" << size
+                 << "Error:" << GetLastError();
+        return false;
+    }
+    return bytesRead == size;
+}
+
 std::string MemoryManager::ReadString(uintptr_t address, size_t maxLength, bool isRelative)
 {
     uintptr_t         finalAddress = isRelative ? ResolveAddress(address) : address;
     std::vector<char> buffer(maxLength + 1); // +1 для нуль-терминатора
-    SIZE_T            bytesRead;
 
-    if (!ReadProcessMemory(processHandle, (LPCVOID)finalAddress, buffer.data(), maxLength, &bytesRead))
+    if (!ReadMemory(finalAddress, buffer.data(), maxLength))
     {
         ThrowLastError("Failed to read string");
     }
@@ -173,7 +180,7 @@ std::string MemoryManager::ReadString(uintptr_t address, size_t maxLength, bool 
     // Находим нуль-терминатор
     buffer[maxLength] = '\0'; // Гарантируем нуль-терминацию
     size_t length     = 0;
-    while (length < bytesRead && buffer[length] != '\0')
+    while (length < maxLength && buffer[length] != '\0')
     {
         length++;
     }
@@ -183,18 +190,25 @@ std::string MemoryManager::ReadString(uintptr_t address, size_t maxLength, bool 
 #pragma endregion Read Operations
 
 #pragma region Write Operations
-bool MemoryManager::WriteString(uintptr_t address, const string& str, bool isRelative)
+bool MemoryManager::WriteMemory(uintptr_t address, const void* buffer, size_t size)
+{
+    SIZE_T bytesWritten;
+    if (!WriteProcessMemory(processHandle, (LPVOID)address, buffer, size, &bytesWritten))
+    {
+        qDebug() << "Failed to write memory at" << QString::number(address, 16) << "of size" << size
+                 << "Error:" << GetLastError();
+        return false;
+    }
+    return bytesWritten == size;
+}
+
+bool MemoryManager::WriteString(uintptr_t address, const std::string& str, bool isRelative)
 {
     uintptr_t finalAddress = isRelative ? ResolveAddress(address) : address;
-    SIZE_T    bytesWritten;
     // Ограничиваем длину строки 12 символами (максимум в WoW)
-    size_t writeLength = min(str.length(), size_t(12));
-    return WriteProcessMemory(processHandle,
-                              (LPVOID)finalAddress,
-                              str.c_str(),
-                              writeLength + 1,
-                              &bytesWritten) // +1 для нуль-терминатора
-           && bytesWritten == writeLength + 1;
+    size_t writeLength = std::min(str.length(), size_t(12));
+
+    return WriteMemory(finalAddress, str.c_str(), writeLength + 1); // +1 для нуль-терминатора
 }
 #pragma endregion Write Operations
 #pragma endregion Read / Write Operations

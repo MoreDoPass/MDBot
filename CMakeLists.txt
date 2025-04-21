@@ -38,14 +38,17 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 # Source files
 set(CORE_SOURCES
     src/core/memory/MemoryManager.cpp
-    src/core/hooks/Hook.cpp
-    src/core/hooks/RegisterHook.cpp
+    src/core/hooks/base/Hook.cpp
+    src/core/hooks/trampoline/Trampoline.cpp
+    src/core/hooks/RunExeHook.cpp
 )
 
 set(CORE_HEADERS
     src/core/memory/MemoryManager.hpp
-    src/core/hooks/Hook.hpp
-    src/core/hooks/RegisterHook.hpp
+    src/core/hooks/base/Types.hpp
+    src/core/hooks/base/Hook.hpp
+    src/core/hooks/trampoline/Trampoline.hpp
+    src/core/hooks/RunExeHook.hpp
 )
 
 set(DEBUG_SOURCES

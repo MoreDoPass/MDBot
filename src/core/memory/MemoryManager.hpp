@@ -225,6 +225,24 @@ class MemoryManager
      */
     bool FreeMemory(void* address);
 
+    /**
+     * @brief Базовый метод для чтения памяти процесса
+     * @param address Адрес для чтения
+     * @param buffer Буфер для записи данных
+     * @param size Размер читаемых данных
+     * @return true если чтение успешно
+     */
+    bool ReadMemory(uintptr_t address, void* buffer, size_t size);
+
+    /**
+     * @brief Базовый метод для записи в память процесса
+     * @param address Адрес для записи
+     * @param buffer Буфер с данными для записи
+     * @param size Размер записываемых данных
+     * @return true если запись успешна
+     */
+    bool WriteMemory(uintptr_t address, const void* buffer, size_t size);
+
   private:
     HANDLE    processHandle; ///< Handle процесса WoW
     DWORD     processId;     ///< ID процесса WoW
